@@ -1,7 +1,8 @@
-import React, { useLayoutEffect, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useState } from 'react'
 import rough from 'roughjs/bundled/rough.esm'
 
-
+import {io} from 'socket.io-client'
+const socket = io('http://localhost:5000')
 const DrawingBoard = () => {
     
     const [isDrawing, setIsDrawing] = useState(false)
@@ -16,13 +17,22 @@ const DrawingBoard = () => {
     const [isSelected, setIsSelected] = useState(false)
     const [distance, setDistance] = useState([0,0])
 
+    useEffect(()=>{
+        socket.on('message', (item)=>{
+            console.log(item)
+            setCurves([...curves, ...item.curves])
+            setRectangles([...rectangles, ...item.rectangles])
+            setOvals([...ovals, ...item.ovals])
+            setLines([...lines, ...item.lines])
+        })
+    }, [socket])
     useLayoutEffect(()=>{
         const canvas = document.getElementById('canvas')
         const ctx = canvas.getContext('2d')
         ctx.clearRect(0, 0, canvas.width, canvas.height)
 
         const rc = rough.canvas(canvas)
-
+        
         curves?.forEach((curve)=>{
             rc.linearPath(curve)
         })
@@ -53,7 +63,14 @@ const DrawingBoard = () => {
             }
         })
 
-        
+        const getData = setTimeout(() => {
+            socket.emit('sendMessage', {
+                curves, rectangles, lines, ovals
+            })
+          }, 2000)
+      
+        return () => clearTimeout(getData)
+
     }, [curves, rectangles, lines, ovals])
 
     const isInside = (x, y)=>
