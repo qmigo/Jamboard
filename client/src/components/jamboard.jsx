@@ -45,6 +45,18 @@ const JamBoard = () => {
           index = key
         }
       }
+
+      if(name === 'curve') {
+        
+        metric?.forEach((point)=> {
+          if(((point[0]-x)*(point[0]-x))+((point[1]-y)*(point[1]-y))<=100) {
+            type = 'curve'
+            index = key
+            return
+          }
+        })
+      }
+
     })
 
     return {type, index}
@@ -53,12 +65,19 @@ const JamBoard = () => {
   function startDrawing(event) {
     const {clientX, clientY} = event
 
-    if(tool === 'select')
+  
+    if(tool === 'select' || tool === 'eraser')
     {
       setIsDrawing(false)
       const {type, index} = isInside(clientX, clientY)
       if(type===null || index===null)return;
       
+      if(tool === 'eraser') {
+        const nextState = produce(elements, draft => {
+          draft = draft.splice(index,1)
+        })
+        setElements(nextState)
+      }
       setIsSelected(true)
       if(type === 'rectangle') {
         setDistance([clientX-elements[index].metric[0], clientY-elements[index].metric[1]])
@@ -69,8 +88,14 @@ const JamBoard = () => {
           clientX-elements[index].metric[2], clientY-elements[index].metric[3], 
         ])
       }
+
+      if(type === 'curve') {
+        let newPoints = elements[index].metric.map((item) => {
+          return [clientX-item[0], clientY-item[1]]
+        })
+        setDistance(newPoints)
+      }
       setSelectedElement({type, index})
-      // console.log(type, index, distance)
       return;
     }
 
@@ -106,9 +131,9 @@ const JamBoard = () => {
     const {clientX, clientY} = event
 
     if(isSelected)
-    { 
+    {   
+    
       const {type, index} = selectedElement
-      console.log(type, index)
 
       if(type === 'rectangle') {
         const nextState = produce(elements, draft => {
@@ -127,8 +152,19 @@ const JamBoard = () => {
           draft[index].metric[3] = clientY-distance[3]
         })
         setElements(nextState)
-
       }
+
+      if(type === 'curve') {
+
+        const copyCurve = elements[index].metric?.map((item, key)=> {
+          return [clientX-distance[key][0], clientY-distance[key][1]]
+        })
+        const nextState = produce(elements, draft => {
+          draft[index].metric = copyCurve
+        })
+        setElements(nextState)
+      }
+
     }
 
     if(!isDrawing)return;
@@ -162,9 +198,10 @@ const JamBoard = () => {
   }
 
   function endDrawing() {
-    // console.log('End drawing')
+
     setIsSelected(false)
     setIsDrawing(false)
+
   }
 
   function undo() {
@@ -177,7 +214,6 @@ const JamBoard = () => {
   }
 
   function redo() {
-    console.log(undoStack)
     if(undoStack.length===0)return;
 
     setElements([...elements, undoStack[undoStack.length-1]])
@@ -219,6 +255,7 @@ const JamBoard = () => {
         <button onClick={()=>{setTool('curve')}}>Curve</button>
         <button onClick={()=>{setTool('line')}}>Line</button>
         <button onClick={()=>{setTool('select')}}>Select</button>
+        <button onClick={()=>{setTool('eraser')}}>Eraser</button>
         <button onClick={undo}>Undo</button>
         <button onClick={redo}>Redo</button>
 
