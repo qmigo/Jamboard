@@ -1,7 +1,9 @@
 import React, { useEffect, useLayoutEffect, useState } from 'react'
 import rough from 'roughjs/bundled/rough.esm'
 import { produce } from 'immer'
-import './board.css'
+// import './board.css'
+import 'src/components/Board/board.css'
+
 import { BiRectangle } from 'react-icons/bi';
 import {BsPencil, BsEraser} from 'react-icons/bs'
 import {PiLineSegmentBold} from 'react-icons/pi'
@@ -9,7 +11,10 @@ import {GrSelect} from 'react-icons/gr'
 import {AiOutlineRedo, AiOutlineUndo} from 'react-icons/ai'
 import {io} from 'socket.io-client'
 
-const socket = io('http://localhost:5000') 
+const PROD_URL = import.meta.env.VITE_PROD_URL
+const LOCAL_URL = import.meta.env.VITE_LOCAL_URL
+
+const socket = io(LOCAL_URL) 
 
 const JamBoard = () => {
   
@@ -239,7 +244,7 @@ const JamBoard = () => {
   }
 
   useEffect(()=>{
-    socket.on('message', (item)=>{
+    socket.on('board', (item)=>{
       console.log(item)
       setRecievedElements([...recievedElements,...item])
     })
@@ -287,7 +292,7 @@ const JamBoard = () => {
     })
 
     const getData = setTimeout(() => {
-      socket.emit('sendMessage', elements)
+      socket.emit('sendBoard', elements)
     }, 2000)
 
     return () => clearTimeout(getData)

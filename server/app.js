@@ -9,19 +9,20 @@ app.use(cors())
 
 const server = http.createServer(app)
 
-
 const io = new Server(server, {
     cors: {
-        origin: 'http://127.0.0.1:5173'
+        origin: '*'
     }
 })
 
 io.on('connection', (socket)=>{
     console.log('socket connected', socket.id)
-
     socket.on('sendMessage', (message)=>{
-        console.log(message)
         socket.broadcast.emit('message', message)
+    })
+    socket.on('sendBoard', (message)=>{
+        // console.log(message)
+        socket.broadcast.emit('board', message)
     })
 
     socket.on('disconnect', (message)=>{
