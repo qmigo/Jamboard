@@ -6,7 +6,9 @@ import { BsFillSendFill } from 'react-icons/bs'
 import {io} from 'socket.io-client'
 
 
-const socket = io('http://localhost:5000') 
+const SERVER = import.meta.env.VITE_SERVER
+
+const socket = io(SERVER) 
 
 const Lobby = () => {
 

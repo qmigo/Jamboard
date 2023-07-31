@@ -11,10 +11,9 @@ import {GrSelect} from 'react-icons/gr'
 import {AiOutlineRedo, AiOutlineUndo} from 'react-icons/ai'
 import {io} from 'socket.io-client'
 
-const PROD_URL = import.meta.env.VITE_PROD_URL
-const LOCAL_URL = import.meta.env.VITE_LOCAL_URL
+const SERVER = import.meta.env.VITE_SERVER
 
-const socket = io(LOCAL_URL) 
+const socket = io(SERVER) 
 
 const JamBoard = () => {
   
