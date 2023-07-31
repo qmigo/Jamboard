@@ -1,6 +1,15 @@
 import React, { useEffect, useLayoutEffect, useState } from 'react'
 import rough from 'roughjs/bundled/rough.esm'
 import { produce } from 'immer'
+import './board.css'
+import { BiRectangle } from 'react-icons/bi';
+import {BsPencil, BsEraser} from 'react-icons/bs'
+import {PiLineSegmentBold} from 'react-icons/pi'
+import {GrSelect} from 'react-icons/gr'
+import {AiOutlineRedo, AiOutlineUndo} from 'react-icons/ai'
+import {io} from 'socket.io-client'
+
+const socket = io('http://localhost:5000') 
 
 const JamBoard = () => {
   
@@ -11,6 +20,8 @@ const JamBoard = () => {
   const [isSelected, setIsSelected] = useState(false)
   const [distance, setDistance] = useState([0,0])
   const [selectedElement, setSelectedElement] = useState({type:null, index: null})
+  const [boardOffset, setBoardOffset] = useState([0,0])
+  const [recievedElements, setRecievedElements] = useState([])
 
   function isPointNearLine(x1, y1, x2, y2, x, y, d_threshold) {
     const m = (y2-y1)/(x2-x1);
@@ -63,8 +74,9 @@ const JamBoard = () => {
   }
 
   function startDrawing(event) {
-    const {clientX, clientY} = event
-
+    let {clientX, clientY} = event
+    clientX -= boardOffset[0]
+    clientY -= boardOffset[1]
   
     if(tool === 'select' || tool === 'eraser')
     {
@@ -128,7 +140,10 @@ const JamBoard = () => {
   }
 
   function keepDrawing(event) {
-    const {clientX, clientY} = event
+    let {clientX, clientY} = event
+
+    clientX-=boardOffset[0]
+    clientY-=boardOffset[1]
 
     if(isSelected)
     {   
@@ -222,9 +237,19 @@ const JamBoard = () => {
     })
     setUndoStack(nextState)
   }
+
+  useEffect(()=>{
+    socket.on('message', (item)=>{
+      console.log(item)
+      setRecievedElements([...recievedElements,...item])
+    })
+  }, [socket])
   
   useLayoutEffect(()=>{
     const canvas = document.getElementById('canvas')
+    const {left, top} = canvas.getBoundingClientRect()
+
+    setBoardOffset([left, top])
     const ctx = canvas.getContext('2d')
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
@@ -243,23 +268,45 @@ const JamBoard = () => {
         rc.line(...metric)
       }
     })
+
+    const property = {
+      stroke: 'red'
+    }
+    recievedElements?.forEach(({name, metric}, key) => {
+      if(name === 'rectangle') {
+        rc.rectangle(...metric, property)
+      }
+
+      if(name === 'curve') {
+        rc.linearPath(metric, property)
+      }
+
+      if(name === 'line') {
+        rc.line(...metric, property)
+      }
+    })
+
+    const getData = setTimeout(() => {
+      socket.emit('sendMessage', elements)
+    }, 2000)
+
+    return () => clearTimeout(getData)
     
-  }, [elements])
+  }, [elements, recievedElements])
 
 
   return (
     <div className='jamboard'>
-      <canvas id='canvas' height={window.innerHeight-100} width={window.innerWidth-100} onMouseDown={startDrawing} onMouseMove={keepDrawing} onMouseUp={endDrawing} style={{border:'5px solid black', cursor:'crosshair'}} ></canvas>
       <div className="swatch">
-        <button onClick={()=>{setTool('rectangle')}}>Rectangle</button>
-        <button onClick={()=>{setTool('curve')}}>Curve</button>
-        <button onClick={()=>{setTool('line')}}>Line</button>
-        <button onClick={()=>{setTool('select')}}>Select</button>
-        <button onClick={()=>{setTool('eraser')}}>Eraser</button>
-        <button onClick={undo}>Undo</button>
-        <button onClick={redo}>Redo</button>
-
+        <div onClick={()=>{setTool('rectangle')}}><BiRectangle/></div>
+        <div onClick={()=>{setTool('curve')}}><BsPencil /></div>
+        <div onClick={()=>{setTool('line')}}><PiLineSegmentBold/></div>
+        <div onClick={()=>{setTool('select')}}><GrSelect/></div>
+        <div onClick={()=>{setTool('eraser')}}><BsEraser/></div>
+        <div onClick={undo}><AiOutlineUndo/></div>
+        <div onClick={redo}><AiOutlineRedo/></div>
       </div>
+      <canvas id='canvas' height={window.innerHeight} width={window.innerWidth*0.7} onMouseDown={startDrawing} onMouseMove={keepDrawing} onMouseUp={endDrawing} ></canvas>
     </div>
   )
 }

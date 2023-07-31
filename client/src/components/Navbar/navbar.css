@@ -1,0 +1,26 @@
+.Navbar {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    height: fit-content;
+    margin-bottom: 20px;
+    padding: 8px;
+    box-shadow:  0px 0px 4px 2px rgb(57, 53, 53);
+}
+
+.nav-title {
+    width: 70%;
+    font-size: 30px;
+}
+
+.nav-btn{
+    color: #212529;
+    border: none;
+    outline: 1px solid #212529;
+    background-color: white;
+}
+.nav-btn:hover{
+    background-color: #373b3ef1;
+    color: white;
+    
+}
