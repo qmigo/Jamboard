@@ -8,6 +8,7 @@ import {io} from 'socket.io-client'
 
 const SERVER = import.meta.env.VITE_SERVER
 
+console.log(SERVER)
 const socket = io(SERVER) 
 
 const Lobby = () => {
