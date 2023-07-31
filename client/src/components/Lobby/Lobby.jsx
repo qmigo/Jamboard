@@ -6,7 +6,7 @@ import { BsFillSendFill } from 'react-icons/bs'
 import {io} from 'socket.io-client'
 
 
-const SERVER = import.meta.env.VITE_SERVER
+const SERVER = 'https://slate-server.onrender.com'
 
 console.log(SERVER)
 const socket = io(SERVER) 
