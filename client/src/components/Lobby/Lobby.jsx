@@ -19,27 +19,29 @@ const Lobby = ({socket, username}) => {
   const connectionRef = useRef()
 
   useEffect(() => {
-    navigator.mediaDevices.getUserMedia( {video: true, audio: true}).then((stream) => {
-      setStream(stream)
-      if (myVideo.current) 
-      {
-        myVideo.current.srcObject = stream;
-      }
-    })
-
     socket.on('me', (id) => {
       setMe(id)
     })
+    setTimeout(()=> {
+      navigator.mediaDevices.getUserMedia( {video: true, audio: true}).then((stream) => {
+        setStream(stream)
+        if (myVideo.current) 
+        {
+          myVideo.current.srcObject = stream;
+        }
+      })
+  
+      socket.on('callUser', (data) => {
+        setReceivingCall(true)
+        setCaller(data.from)
+        setName(data.name)
+        setCallerSignal(data.signal)
+      })
+  
+      console.log(username)
 
-    socket.on('callUser', (data) => {
-      setReceivingCall(true)
-      setCaller(data.from)
-      setName(data.name)
-      setCallerSignal(data.signal)
-    })
-
-    console.log(username)
-
+    }, 1000)
+    
   }, [])
 
   const callUser = (id) => {
