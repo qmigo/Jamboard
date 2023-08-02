@@ -46,7 +46,8 @@ const Lobby = ({socket, username}) => {
     const peer = new Peer ({
       initiator: true,
       trickle: false,
-      stream: stream
+      stream: stream,
+      secure: true
     })
 
     peer.on('signal', (data) => {
@@ -77,7 +78,8 @@ const Lobby = ({socket, username}) => {
     const peer = new Peer ({
       initiator: false,
       trickle: false,
-      stream: stream
+      stream: stream,
+      secure: true
     })
 
     peer.on('signal', (data) => {
