@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import Peer from "simple-peer"
 import 'src/components/Lobby/lobby.css'
 
-const Lobby = ({socket}) => {
+const Lobby = ({socket, username}) => {
 
   const [me, setMe] = useState('')
   const [stream, setStream] = useState()
@@ -38,6 +38,8 @@ const Lobby = ({socket}) => {
       setCallerSignal(data.signal)
     })
 
+    console.log(username)
+
   }, [])
 
   const callUser = (id) => {
@@ -52,7 +54,7 @@ const Lobby = ({socket}) => {
         userToCall: id,
         signalData : data,
         from: me,
-        name: name
+        name: username
       })
     })
 

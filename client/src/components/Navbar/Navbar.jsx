@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import 'src/components/Navbar/navbar.css'
 
-const Navbar = ({socket}) => {
+const Navbar = ({socket, setUserName}) => {
 
   return (
     <div className='Navbar'>
@@ -9,6 +9,7 @@ const Navbar = ({socket}) => {
             Untitled
         </div>        
         
+        <input type="text" className='nav-btn' placeholder='Username' onChange={(e)=> {setUserName(e.target.value)}}/>
 
     </div>
   )
