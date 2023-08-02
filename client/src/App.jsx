@@ -6,8 +6,8 @@ import {io} from 'socket.io-client'
 import { useEffect } from 'react'
 
 
-// const SERVER = 'https://slate-server.onrender.com'
-const SERVER = 'http://localhost:5000'
+const SERVER = 'https://slate-server.onrender.com'
+// const SERVER = 'http://localhost:5000'
 const socket = io(SERVER) 
 
 function App() {
