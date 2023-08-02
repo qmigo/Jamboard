@@ -19,38 +19,44 @@ const Lobby = ({socket, username}) => {
   const connectionRef = useRef()
 
   useEffect(() => {
+   
+    navigator.mediaDevices.getUserMedia( {video: true, audio: true}).then((stream) => {
+      setStream(stream)
+      if (myVideo.current) 
+      {
+        myVideo.current.srcObject = stream;
+      }
+    })
+
     socket.on('me', (id) => {
       setMe(id)
     })
-    setTimeout(()=> {
-      navigator.mediaDevices.getUserMedia( {video: true, audio: true}).then((stream) => {
-        setStream(stream)
-        if (myVideo.current) 
-        {
-          myVideo.current.srcObject = stream;
-        }
-      })
-  
-      socket.on('callUser', (data) => {
-        setReceivingCall(true)
-        setCaller(data.from)
-        setName(data.name)
-        setCallerSignal(data.signal)
-      })
-  
-      console.log(username)
 
-    }, 1000)
-    
+    socket.on('callUser', (data) => {
+      setReceivingCall(true)
+      setCaller(data.from)
+      setName(data.name)
+      setCallerSignal(data.signal)
+    })
+
+    console.log(username)
+
   }, [])
 
   const callUser = (id) => {
     const peer = new Peer ({
+      config: {'iceServers': [
+              { url: 'stun3.l.google.com:19302' },
+          ]} /* Sample servers, please use appropriate ones */
+        },
+  {
       initiator: true,
       trickle: false,
       stream: stream,
       secure: true
     })
+
+    
 
     peer.on('signal', (data) => {
       socket.emit('callUser', {
@@ -78,6 +84,10 @@ const Lobby = ({socket, username}) => {
     setCallAccepted(true)
 
     const peer = new Peer ({
+      config: {'iceServers': [
+              { url: 'stun3.l.google.com:19302' },
+          ]} /* Sample servers, please use appropriate ones */
+        },{
       initiator: false,
       trickle: false,
       stream: stream,
