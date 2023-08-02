@@ -12,11 +12,13 @@
   "dependencies": {
     "bootstrap": "^5.3.1",
     "immer": "^10.0.2",
+    "peerjs": "^1.4.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^4.10.1",
     "react-svg": "^16.1.19",
     "roughjs": "^4.5.2",
+    "simple-peer": "^9.9.3",
     "socket.io-client": "^4.7.1"
   },
   "devDependencies": {
@@ -27,6 +29,7 @@
     "eslint-plugin-react": "^7.32.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",
-    "vite": "^4.4.5"
+    "vite": "^4.4.5",
+    "vite-plugin-node-polyfills": "^0.9.0"
   }
 }

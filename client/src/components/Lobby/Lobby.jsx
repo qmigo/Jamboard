@@ -1,59 +1,160 @@
-import React, { useEffect, useState } from 'react'
-// import './lobby.css'
+import React, { useEffect, useRef, useState } from 'react'
+import Peer from "simple-peer"
 import 'src/components/Lobby/lobby.css'
 
-import { BsFillSendFill } from 'react-icons/bs'
-import {io} from 'socket.io-client'
+const Lobby = ({socket}) => {
 
+  const [me, setMe] = useState('')
+  const [stream, setStream] = useState()
+  const [receivingCall, setReceivingCall] = useState(false)
+  const [caller, setCaller] = useState('')
+  const [callerSignal, setCallerSignal] = useState()
+  const [callAccepted, setCallAccepted] = useState(false)
+  const [idToCall, setIdToCall] = useState('')
+  const [callEnded, setCallEnded] = useState(false)
+  const [name, setName] = useState('')
 
-const SERVER = 'https://slate-server.onrender.com'
+  const myVideo = useRef()
+  const userVideo = useRef()
+  const connectionRef = useRef()
 
-console.log(SERVER)
-const socket = io(SERVER) 
-
-const Lobby = () => {
-
-  // const [recievedMessage, setRecievedMessage] = useState([])
-  // const [sendedMessage, setSendedMessage] = useState([])
-
-  const [messageList, setMessageList] = useState([])
-  const [userInput, setUserInput] = useState(null)
-
-  useEffect(()=>{
-    socket.on('message', (item)=>{
-      console.log(item)
-      console.log(messageList)
-      setMessageList([...messageList, item])
+  useEffect(() => {
+    navigator.mediaDevices.getUserMedia( {video: true, audio: true}).then((stream) => {
+      setStream(stream)
+      if (myVideo.current) 
+      {
+        myVideo.current.srcObject = stream;
+      }
     })
-  }, [socket])
 
-  function sendMessage () {
-    if(userInput === null)return;
-    const userResponse = {
-      data: userInput,
-      time: new Date()
-    }
-    socket.emit('sendMessage', userResponse)
-    setMessageList([...messageList, userResponse])
-    setUserInput('')
-    document.getElementById('input').value = ''
+    socket.on('me', (id) => {
+      setMe(id)
+    })
+
+    socket.on('callUser', (data) => {
+      setReceivingCall(true)
+      setCaller(data.from)
+      setName(data.name)
+      setCallerSignal(data.signal)
+    })
+
+  }, [])
+
+  const callUser = (id) => {
+    const peer = new Peer ({
+      initiator: true,
+      trickle: false,
+      stream: stream
+    })
+
+    peer.on('signal', (data) => {
+      socket.emit('callUser', {
+        userToCall: id,
+        signalData : data,
+        from: me,
+        name: name
+      })
+    })
+
+    peer.on('stream', (stream) => {
+      userVideo.current.srcObject = stream
+    })
+
+    socket.on('callAccepted', (signal) => {
+      setCallAccepted(true)
+      peer.signal(signal)
+    })
+    
+    connectionRef.current = peer
+    
   }
+
+  const answerCall = () => {
+    setCallAccepted(true)
+
+    const peer = new Peer ({
+      initiator: false,
+      trickle: false,
+      stream: stream
+    })
+
+    peer.on('signal', (data) => {
+      socket.emit('answerCall', {
+        signal: data,
+        to: caller
+      })
+    })
+
+    peer.on('stream', (stream) => {
+      userVideo.current.srcObject = stream
+    })
+
+    peer.signal(callerSignal)
+    connectionRef.current = peer
+  }
+
+  const leaveCall = () => {
+    setCallEnded(true)
+    setCallAccepted(false)
+    setReceivingCall(false)
+    connectionRef.current.destroy()
+  }
+
   return (
     <div className='Lobby'>
-        <div className="lobby-contact">
-            Himesh
+      
+      <div className="video-container">
+        
+          <div className="video">
+            {stream &&  <video playsInline muted ref={myVideo} autoPlay />}
+          </div>
+        
+        
+          <div className="video">
+            {callAccepted && !callEnded ?
+            <video playsInline ref={userVideo} autoPlay  />:
+            <></>}
+          </div>
+       
+      </div>
+      <div className="panel">
+        {
+          !callAccepted && 
+          <>
+          <b>From</b>
+          <div className="my-id">
+            {me}
+            </div>
+          <b>To</b> <br />
+          <input type="text" placeholder='Id to call' onChange={(e)=>{setIdToCall(e.target.value)}}/>
+          </>
+          
+        }
+        <div className="call-btns">
+        <div className="accept-button">
+					{callAccepted && !callEnded ? (
+						<button className='btn btn-danger my-2' onClick={leaveCall}>
+							End Call
+						</button>
+					) : (
+						<button className= 'btn btn-success my-2' onClick={() => callUser(idToCall)}>
+							Call
+						</button>
+					)}
+
+				</div>
+        <div className="decline-button">
+        {receivingCall && !callAccepted ? (
+						<div className="caller">
+						<h1 >{name} is calling...</h1>
+						<button className = 'btn btn-dark 'onClick={answerCall}>
+							Answer
+						</button>
+					</div>
+				) : null}
         </div>
-        <div className="lobby-chat">
-          {
-            messageList?.map((msg)=>(
-              <div>{msg.data}</div>
-            ))
-          }
         </div>
-        <div className="lobby-utility">
-            <input type="text" id='input' onChange={(e)=>{setUserInput(e.target.value)}}/>
-            <BsFillSendFill size={'1.2rem'} onClick={sendMessage}/>
-        </div>
+      </div>
     </div>
   )
 }

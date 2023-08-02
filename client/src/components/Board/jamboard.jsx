@@ -1,21 +1,15 @@
 import React, { useEffect, useLayoutEffect, useState } from 'react'
 import rough from 'roughjs/bundled/rough.esm'
 import { produce } from 'immer'
-// import './board.css'
-import 'src/components/Board/board.css'
+import 'src/components/Board/board.css' 
 
 import { BiRectangle } from 'react-icons/bi';
 import {BsPencil, BsEraser} from 'react-icons/bs'
 import {PiLineSegmentBold} from 'react-icons/pi'
 import {GrSelect} from 'react-icons/gr'
 import {AiOutlineRedo, AiOutlineUndo} from 'react-icons/ai'
-import {io} from 'socket.io-client'
 
-const SERVER = 'https://slate-server.onrender.com'
-// console.log(SERVER)
-const socket = io(SERVER) 
-
-const JamBoard = () => {
+const JamBoard = ({socket}) => {
   
   const [isDrawing, setIsDrawing] = useState(false)
   const [elements, setElements] = useState([])
@@ -244,7 +238,7 @@ const JamBoard = () => {
 
   useEffect(()=>{
     socket.on('board', (item)=>{
-      console.log(item)
+      // console.log(item)
       setRecievedElements([...recievedElements,...item])
     })
   }, [socket])

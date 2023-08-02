@@ -18,9 +18,5 @@
     border: none;
     outline: 1px solid #212529;
     background-color: white;
-}
-.nav-btn:hover{
-    background-color: #373b3ef1;
-    color: white;
-    
+    padding: 5px;
 }
